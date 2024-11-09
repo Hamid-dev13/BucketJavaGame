@@ -26,6 +26,7 @@ public class Main implements ApplicationListener {
     Sprite bucketSprite; // Déclarez votre Sprite ici
     Vector2 touchPos;
     Array<Sprite> dropSprites;
+    float dropTimer;
     @Override
     public void create() {
         backgroundTexture = new Texture("background.png");
@@ -38,6 +39,7 @@ public class Main implements ApplicationListener {
         viewport = new FitViewport(8, 5);
         touchPos = new Vector2();
         dropSprites = new Array<>();
+
     }
 
     @Override
@@ -77,15 +79,34 @@ public class Main implements ApplicationListener {
 
 
     private void logic() {
-        // Votre logique du jeu
-        float worldWidth = Gdx.graphics.getWidth();
-        float worldHeight = Gdx.graphics.getHeight();
-
+        float worldWidth = viewport.getWorldWidth();
+        float worldHeight = viewport.getWorldHeight();
         float bucketWidth = bucketSprite.getWidth();
         float bucketHeight = bucketSprite.getHeight();
 
-        bucketSprite.setX(MathUtils.clamp(bucketSprite.getX(),0,worldWidth - bucketWidth));
+        bucketSprite.setX(MathUtils.clamp(bucketSprite.getX(), 0, worldWidth - bucketWidth));
+
+        float delta = Gdx.graphics.getDeltaTime();
+
+        // Loop through the sprites backwards to prevent out of bounds errors
+        for (int i = dropSprites.size - 1; i >= 0; i--) {
+            Sprite dropSprite = dropSprites.get(i); // Get the sprite from the list
+            float dropWidth = dropSprite.getWidth();
+            float dropHeight = dropSprite.getHeight();
+
+            dropSprite.translateY(-2f * delta);
+            //si la goutte touche le bas du cadre, elle est supprimé
+            if (dropSprite.getY() < -dropHeight) dropSprites.removeIndex(i);
+        }
+
+        dropTimer += delta;
+        if (dropTimer > 1f) {
+            dropTimer = 0;
+            creatDroplet();
+        }
     }
+
+
 
     private void draw() {
         ScreenUtils.clear(Color.BLACK);
@@ -98,10 +119,25 @@ public class Main implements ApplicationListener {
         spriteBatch.draw(backgroundTexture, 0, 0, worldWidth, worldHeight);
         spriteBatch.draw(bucketTexture, 0, 0, 1, 1);
         bucketSprite.draw(spriteBatch);
-
+        for (Sprite dropSprite : dropSprites) {
+            dropSprite.draw(spriteBatch);
+        }
         spriteBatch.end();
     }
+private void creatDroplet (){
+        //Création des variables localement pour simplifier la demarche
+        float dropWidth = 1;
+        float dropHeight = 1;
+        float worldWidth = viewport.getWorldWidth();
+        float worldHeight = viewport.getWorldHeight();
+//Création du drop des gouttes d'eau
+    Sprite dropSprite = new Sprite(dropTexture);
+    dropSprite.setSize(dropWidth,dropHeight);
+    dropSprite.setX(MathUtils.random(0f, worldWidth - dropWidth));
+    dropSprite.setY(worldHeight);
+    dropSprites.add(dropSprite);
 
+    }
     @Override
     public void pause() {
         // Cette méthode est appelée quand l'application est mise en pause.
