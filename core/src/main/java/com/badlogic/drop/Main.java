@@ -42,6 +42,8 @@ public class Main implements ApplicationListener {
         viewport = new FitViewport(8, 5);
         touchPos = new Vector2();
         dropSprites = new Array<>();
+        bucketRectangle = new Rectangle(bucketSprite.getX(), bucketSprite.getY(), bucketSprite.getWidth(), bucketSprite.getHeight());
+        dropRectangle = new Rectangle();
 
     }
 
@@ -88,7 +90,7 @@ public class Main implements ApplicationListener {
         float bucketHeight = bucketSprite.getHeight();
 
         bucketSprite.setX(MathUtils.clamp(bucketSprite.getX(), 0, worldWidth - bucketWidth));
-
+        bucketRectangle.set(bucketSprite.getX(), bucketSprite.getY(), bucketSprite.getWidth(), bucketSprite.getHeight());
         float delta = Gdx.graphics.getDeltaTime();
 
         // Loop through the sprites backwards to prevent out of bounds errors
@@ -98,8 +100,15 @@ public class Main implements ApplicationListener {
             float dropHeight = dropSprite.getHeight();
 
             dropSprite.translateY(-2f * delta);
+            //implementation de la position de la goutte et sa taille a ma class dropRectangle
+
+            dropRectangle.set(dropSprite.getX(), dropSprite.getY(), dropWidth, dropHeight);
             //si la goutte touche le bas du cadre, elle est supprimé
             if (dropSprite.getY() < -dropHeight) dropSprites.removeIndex(i);
+            else if(bucketRectangle.overlaps(dropRectangle)){
+              dropSprites.removeIndex(i);
+              dropSound.play();
+            }
         }
 
         dropTimer += delta;
@@ -120,7 +129,7 @@ public class Main implements ApplicationListener {
         float worldWidth = viewport.getWorldWidth();
         float worldHeight = viewport.getWorldHeight();
         spriteBatch.draw(backgroundTexture, 0, 0, worldWidth, worldHeight);
-        spriteBatch.draw(bucketTexture, 0, 0, 1, 1);
+        //spriteBatch.draw(bucketTexture, 0, 0, 1, 1);
         bucketSprite.draw(spriteBatch);
         for (Sprite dropSprite : dropSprites) {
             dropSprite.draw(spriteBatch);
